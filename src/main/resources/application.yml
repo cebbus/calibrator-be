@@ -1,0 +1,18 @@
+spring:
+  datasource:
+    url:  jdbc:sqlserver://{server}:{port};databaseName={db}
+    username: {username}
+    password: {password}
+    driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
+  jpa:
+    show-sql: true
+    #properties:
+     #javax.persistence.schema-generation.create-source: metadata
+     #javax.persistence.schema-generation.scripts.action: create
+     #javax.persistence.schema-generation.scripts.create-target: create.sql
+
+  flyway:
+    locations: classpath:db/migration/common,db/migration/mssql
+
+jwt:
+  secret: {secret}
