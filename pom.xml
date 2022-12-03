@@ -19,6 +19,7 @@
 	<properties>
 		<java.version>11</java.version>
 		<jwt.version>4.2.1</jwt.version>
+		<mssql-jdbc.version>10.2.1.jre11</mssql-jdbc.version>
 	</properties>
 
 	<dependencies>
@@ -57,8 +58,9 @@
 		</dependency>
 		<dependency>
 			<groupId>org.flywaydb</groupId>
-			<artifactId>flyway-mysql</artifactId>
+			<artifactId>flyway-sqlserver</artifactId>
 		</dependency>
+
 		<dependency>
 			<groupId>com.auth0</groupId>
 			<artifactId>java-jwt</artifactId>
