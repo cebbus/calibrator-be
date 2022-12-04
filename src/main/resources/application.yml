@@ -16,3 +16,6 @@ spring:
 
 jwt:
   secret: {secret}
+
+calibrator:
+  home: {home-path}

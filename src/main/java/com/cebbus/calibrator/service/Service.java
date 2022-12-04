@@ -10,4 +10,6 @@ public interface Service<T> {
     T get(Long id);
 
     List<T> list();
+
+    void delete(Long id);
 }

@@ -17,46 +17,47 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService, UserDetailsService {
 
-    private final UserRepository userRepository;
+    private final UserRepository repository;
     private final PasswordEncoder passwordEncoder;
 
     @Override
     public User save(User user) {
         user.setPassword(passwordEncoder.encode(user.getPassword()));
-        return userRepository.save(user);
+        return repository.save(user);
     }
 
     @Override
     public User update(User user) {
-        User oldUser = userRepository.findById(user.getId()).orElseThrow();
+        User oldUser = repository.findById(user.getId()).orElseThrow();
         user.setPassword(oldUser.getPassword());
+        user.setRoles(oldUser.getRoles());
 
-        return userRepository.save(user);
+        return repository.save(user);
     }
 
     @Override
     public User get(Long id) {
-        return userRepository.getReferenceById(id);
+        return repository.getReferenceById(id);
     }
 
     @Override
     public List<User> list() {
-        return userRepository.findAll();
+        return repository.findAll();
     }
 
     @Override
     public User get(String username) {
-        return userRepository.findByUsername(username);
+        return repository.findByUsername(username);
     }
 
     @Override
     public void delete(Long id) {
-        userRepository.deleteById(id);
+        repository.deleteById(id);
     }
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        User user = userRepository.findByUsername(username);
+        User user = repository.findByUsername(username);
         if (user == null) {
             throw new UsernameNotFoundException("User not found!");
         }

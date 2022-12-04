@@ -1,0 +1,2 @@
+create table structure (id bigint not null, class_name varchar(255), created bit, table_name varchar(255), primary key (id));
+create table structure_field (id bigint not null, column_name varchar(255), field_name varchar(255), type varchar(255), structure_id bigint, primary key (id));

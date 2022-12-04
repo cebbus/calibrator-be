@@ -6,6 +6,4 @@ public interface UserService extends Service<User> {
 
     User get(String username);
 
-    void delete(Long id);
-
 }
