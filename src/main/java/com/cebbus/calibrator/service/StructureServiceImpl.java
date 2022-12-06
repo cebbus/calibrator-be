@@ -4,9 +4,10 @@ import com.cebbus.calibrator.common.CustomClassOperations;
 import com.cebbus.calibrator.domain.Structure;
 import com.cebbus.calibrator.repository.StructureRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -27,12 +28,7 @@ public class StructureServiceImpl implements StructureService {
 
     @Override
     public Structure get(Long id) {
-        return repository.getReferenceById(id);
-    }
-
-    @Override
-    public List<Structure> list() {
-        return repository.findAll();
+        return repository.findById(id).orElseThrow();
     }
 
     @Override
@@ -62,6 +58,11 @@ public class StructureServiceImpl implements StructureService {
 
         structure.setCreated(true);
         return repository.save(structure);
+    }
+
+    @Override
+    public Page<Structure> getPage(Specification<Structure> specification, PageRequest pageRequest) {
+        return repository.findAll(specification, pageRequest);
     }
 
     private void createClassAndTable(Structure structure) {

@@ -4,6 +4,7 @@ spring:
     username: {username}
     password: {password}
     driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
+
   jpa:
     show-sql: true
     #properties:
@@ -13,6 +14,13 @@ spring:
 
   flyway:
     locations: classpath:db/migration/common,db/migration/mssql
+
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss
+    deserialization:
+      ACCEPT_EMPTY_STRING_AS_NULL_OBJECT: true
+    serialization:
+      FAIL_ON_EMPTY_BEANS: false
 
 jwt:
   secret: {secret}

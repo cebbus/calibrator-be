@@ -3,6 +3,9 @@ package com.cebbus.calibrator.service;
 import com.cebbus.calibrator.domain.User;
 import com.cebbus.calibrator.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -37,17 +40,22 @@ public class UserServiceImpl implements UserService, UserDetailsService {
 
     @Override
     public User get(Long id) {
-        return repository.getReferenceById(id);
-    }
-
-    @Override
-    public List<User> list() {
-        return repository.findAll();
+        return repository.findById(id).orElseThrow();
     }
 
     @Override
     public User get(String username) {
         return repository.findByUsername(username);
+    }
+
+    @Override
+    public Page<User> getPage(Specification<User> build, PageRequest pageRequest) {
+        return repository.findAll(build, pageRequest);
+    }
+
+    @Override
+    public long count() {
+        return repository.count();
     }
 
     @Override

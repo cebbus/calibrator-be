@@ -1,12 +1,14 @@
 package com.cebbus.calibrator.controller;
 
 import com.cebbus.calibrator.domain.User;
+import com.cebbus.calibrator.filter.SortWrapper;
+import com.cebbus.calibrator.filter.SpecificationBuilder;
 import com.cebbus.calibrator.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -16,8 +18,17 @@ public class UserController {
     private final UserService service;
 
     @GetMapping
-    public List<User> list() {
-        return service.list();
+    public Page<User> list(
+            @RequestParam Integer page,
+            @RequestParam Integer limit,
+            @RequestParam(required = false) String sort,
+            @RequestParam(required = false) String filter) {
+        PageRequest pageRequest = PageRequest.of(--page, limit, SortWrapper.valueOf(sort));
+
+        SpecificationBuilder<User> builder = new SpecificationBuilder<>(User.class);
+        builder.with(filter);
+
+        return service.getPage(builder.build(), pageRequest);
     }
 
     @PostMapping

@@ -1,12 +1,14 @@
 package com.cebbus.calibrator.controller;
 
 import com.cebbus.calibrator.domain.Structure;
+import com.cebbus.calibrator.filter.SortWrapper;
+import com.cebbus.calibrator.filter.SpecificationBuilder;
 import com.cebbus.calibrator.service.StructureService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -16,8 +18,17 @@ public class StructureController {
     private final StructureService service;
 
     @GetMapping
-    public List<Structure> list() {
-        return service.list();
+    public Page<Structure> list(
+            @RequestParam Integer page,
+            @RequestParam Integer limit,
+            @RequestParam(required = false) String sort,
+            @RequestParam(required = false) String filter) {
+        PageRequest pageRequest = PageRequest.of(--page, limit, SortWrapper.valueOf(sort));
+
+        SpecificationBuilder<Structure> builder = new SpecificationBuilder<>(Structure.class);
+        builder.with(filter);
+
+        return service.getPage(builder.build(), pageRequest);
     }
 
     @PostMapping

@@ -7,7 +7,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
 import java.util.Set;
 
 @Component
@@ -18,8 +17,8 @@ public class InitUserRunner implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-        List<User> userList = userService.list();
-        if (!userList.isEmpty()) {
+        long count = userService.count();
+        if (count > 0) {
             return;
         }
 
