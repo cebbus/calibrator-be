@@ -1,0 +1,2 @@
+create table decision_tree (id bigint not null, method varchar(255), structure_id bigint, primary key (id));
+create table decision_tree_item (id bigint not null, classification varchar(255), field_name varchar(255), field_value varchar(255), decision_tree_id bigint, parent_id bigint, primary key (id));

@@ -2,6 +2,7 @@ package com.cebbus.calibrator.service;
 
 import com.cebbus.calibrator.common.CustomClassOperations;
 import com.cebbus.calibrator.domain.Structure;
+import com.cebbus.calibrator.repository.DecisionTreeRepository;
 import com.cebbus.calibrator.repository.StructureRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -14,6 +15,7 @@ import org.springframework.stereotype.Service;
 public class StructureServiceImpl implements StructureService {
 
     private final StructureRepository repository;
+    private final DecisionTreeRepository treeRepository;
     private final CustomClassOperations customClassOperations;
 
     @Override
@@ -33,6 +35,12 @@ public class StructureServiceImpl implements StructureService {
 
     @Override
     public void delete(Long id) {
+        Structure structure = get(id);
+        if (Boolean.TRUE.equals(structure.getCreated())) {
+            dropClassAndTable(structure);
+        }
+
+        treeRepository.deleteByStructureId(id);
         repository.deleteById(id);
     }
 

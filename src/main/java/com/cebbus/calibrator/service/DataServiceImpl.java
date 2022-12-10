@@ -1,7 +1,6 @@
 package com.cebbus.calibrator.service;
 
 import com.cebbus.calibrator.common.ClassOperations;
-import com.cebbus.calibrator.common.CustomClassOperations;
 import com.cebbus.calibrator.repository.StructureRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -16,8 +15,6 @@ import java.util.List;
 public class DataServiceImpl implements DataService {
 
     private final StructureRepository repository;
-    private final CustomClassOperations customClassOperations;
-
 
     @Override
     public <T> List<T> list(Class<T> clazz) {

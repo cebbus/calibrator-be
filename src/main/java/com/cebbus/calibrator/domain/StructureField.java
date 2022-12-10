@@ -26,6 +26,12 @@ public class StructureField extends Base {
     @Enumerated(EnumType.STRING)
     private DataType type;
 
+    @Column
+    private boolean classifier;
+
+    @Column
+    private boolean differentiator;
+
     @ManyToOne
     @JoinColumn(name = "structureId")
     @JsonBackReference
