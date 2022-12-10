@@ -32,6 +32,9 @@ public class StructureField extends Base {
     @Column
     private boolean differentiator;
 
+    @Column
+    private boolean excluded;
+
     @ManyToOne
     @JoinColumn(name = "structureId")
     @JsonBackReference

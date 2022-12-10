@@ -7,6 +7,7 @@ import com.cebbus.calibrator.domain.StructureField;
 import com.cebbus.calibrator.repository.StructureRepository;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -46,6 +47,26 @@ public abstract class BaseAnalysis implements Analysis {
         Structure structure = getStructure(structureId);
         Class<T> type = getType(structure.getClassName());
         return structureRepository.list(type);
+    }
+
+    <T> List<T> filterStructureData(Structure structure, List<T> dataList, boolean training) {
+        Optional<StructureField> differentiator = structure.getFields().stream()
+                .filter(StructureField::isDifferentiator)
+                .findFirst();
+
+        if (differentiator.isEmpty()) {
+            return dataList;
+        } else {
+            String fieldName = differentiator.get().getFieldName();
+            return dataList.stream().filter(d -> {
+                Object value = ClassOperations.getField(d, fieldName);
+                if (training) {
+                    return Boolean.TRUE.equals(value);
+                } else {
+                    return !Boolean.TRUE.equals(value);
+                }
+            }).collect(Collectors.toList());
+        }
     }
 
     double logBase2(double t) {

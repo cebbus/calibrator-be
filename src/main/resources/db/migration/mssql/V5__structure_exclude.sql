@@ -1,0 +1,1 @@
+alter table structure_field add excluded bit;

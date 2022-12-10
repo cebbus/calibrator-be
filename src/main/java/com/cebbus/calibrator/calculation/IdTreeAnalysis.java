@@ -6,7 +6,6 @@ import com.cebbus.calibrator.controller.request.DecisionTreeReq;
 import com.cebbus.calibrator.domain.DecisionTreeItem;
 import com.cebbus.calibrator.domain.Structure;
 import com.cebbus.calibrator.domain.StructureField;
-import com.cebbus.calibrator.domain.enums.DataType;
 import com.cebbus.calibrator.repository.StructureRepository;
 import org.springframework.stereotype.Component;
 
@@ -26,11 +25,12 @@ public class IdTreeAnalysis extends BaseAnalysis {
         long structureId = request.getStructureId().longValue();
         Structure structure = getStructure(structureId);
         List<Object> dataList = loadStructureData(structureId);
+        List<Object> trainingDataList = filterStructureData(structure, dataList, true);
 
         DecisionTreeItem root = new DecisionTreeItem();
         root.setChildren(new ArrayList<>());
 
-        createTree(structure, dataList, root);
+        createTree(structure, trainingDataList, root);
 
         return root;
     }
@@ -82,7 +82,7 @@ public class IdTreeAnalysis extends BaseAnalysis {
             String fieldName = field.getFieldName();
             if (field.isDifferentiator()
                     || field.isClassifier()
-                    || !field.getType().equals(DataType.STRING)) {
+                    || field.isExcluded()) {
                 continue;
             }
 
