@@ -12,7 +12,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Component
-public class CFourPointFiveAnalysis extends IdTreeAnalysis {
+public class CFourPointFiveAnalysis extends EntropyAnalysis {
 
     public CFourPointFiveAnalysis(
             StructureRepository structureRepository,
