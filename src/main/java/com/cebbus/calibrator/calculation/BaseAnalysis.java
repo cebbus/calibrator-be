@@ -6,9 +6,7 @@ import com.cebbus.calibrator.domain.Structure;
 import com.cebbus.calibrator.domain.StructureField;
 import com.cebbus.calibrator.repository.StructureRepository;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public abstract class BaseAnalysis implements Analysis {
@@ -37,9 +35,9 @@ public abstract class BaseAnalysis implements Analysis {
                 .getFieldName();
     }
 
-    Set<Object> createValueSet(List<Object> dataList, String attribute) {
+    Set<Object> createValueSet(List<Map<String, Object>> dataList, String attribute) {
         return dataList.stream()
-                .map(d -> ClassOperations.getField(d, attribute))
+                .map(d -> d.get(attribute))
                 .collect(Collectors.toSet());
     }
 
@@ -67,6 +65,22 @@ public abstract class BaseAnalysis implements Analysis {
                 }
             }).collect(Collectors.toList());
         }
+    }
+
+    <T> List<Map<String, Object>> convertStructureData(Structure structure, List<T> dataList) {
+        List<Map<String, Object>> rowList = new ArrayList<>();
+        Set<StructureField> fields = structure.getFields();
+        for (T data : dataList) {
+            Map<String, Object> row = new HashMap<>();
+            for (StructureField field : fields) {
+                String fieldName = field.getFieldName();
+                row.put(fieldName, ClassOperations.getField(data, fieldName));
+            }
+
+            rowList.add(row);
+        }
+
+        return rowList;
     }
 
     double logBase2(double t) {

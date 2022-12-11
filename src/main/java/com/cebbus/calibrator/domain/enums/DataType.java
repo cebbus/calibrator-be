@@ -1,6 +1,7 @@
 package com.cebbus.calibrator.domain.enums;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.function.Function;
 
 public enum DataType {
@@ -50,5 +51,9 @@ public enum DataType {
         }
 
         throw new IllegalArgumentException("Type not found. Type: " + dataType);
+    }
+
+    public static List<DataType> numericTypeList() {
+        return List.of(DOUBLE, INTEGER);
     }
 }

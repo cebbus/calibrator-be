@@ -1,6 +1,5 @@
 package com.cebbus.calibrator.calculation;
 
-import com.cebbus.calibrator.common.ClassOperations;
 import com.cebbus.calibrator.common.CustomClassOperations;
 import com.cebbus.calibrator.controller.request.DecisionTreeReq;
 import com.cebbus.calibrator.domain.DecisionTreeItem;
@@ -26,16 +25,17 @@ public class IdTreeAnalysis extends BaseAnalysis {
         Structure structure = getStructure(structureId);
         List<Object> dataList = loadStructureData(structureId);
         List<Object> trainingDataList = filterStructureData(structure, dataList, true);
+        List<Map<String, Object>> convertedDataList = convertStructureData(structure, trainingDataList);
 
         DecisionTreeItem root = new DecisionTreeItem();
         root.setChildren(new ArrayList<>());
 
-        createTree(structure, trainingDataList, root);
+        createTree(structure, convertedDataList, root);
 
         return root;
     }
 
-    private void createTree(Structure structure, List<Object> dataList, DecisionTreeItem parent) {
+    private void createTree(Structure structure, List<Map<String, Object>> dataList, DecisionTreeItem parent) {
         String classAttribute = findClassAttribute(structure);
         Map<String, Double> gainMap = calculateGainMap(structure, dataList);
 
@@ -51,10 +51,10 @@ public class IdTreeAnalysis extends BaseAnalysis {
         parent.getChildren().add(item);
 
         Set<Object> valueSet = createValueSet(dataList, maxGainField);
-        Map<Object, List<Object>> valueMap = createAttributeMap(dataList, maxGainField);
+        Map<Object, List<Map<String, Object>>> valueMap = createAttributeMap(dataList, maxGainField);
 
         for (Object value : valueSet) {
-            List<Object> subDataList = valueMap.get(value);
+            List<Map<String, Object>> subDataList = valueMap.get(value);
 
             DecisionTreeItem subItem = new DecisionTreeItem();
             subItem.setFieldName(maxGainField);
@@ -72,7 +72,7 @@ public class IdTreeAnalysis extends BaseAnalysis {
         }
     }
 
-    private Map<String, Double> calculateGainMap(Structure structure, List<Object> dataList) {
+    private Map<String, Double> calculateGainMap(Structure structure, List<Map<String, Object>> dataList) {
         String classAttribute = findClassAttribute(structure);
         Set<Object> classValueSet = createValueSet(dataList, classAttribute);
         double classEntropy = calculateEntropy(dataList, classValueSet, classAttribute);
@@ -87,8 +87,8 @@ public class IdTreeAnalysis extends BaseAnalysis {
             }
 
             double entropy = 0;
-            Map<Object, List<Object>> attributeMap = createAttributeMap(dataList, fieldName);
-            for (List<Object> list : attributeMap.values()) {
+            Map<Object, List<Map<String, Object>>> attributeMap = createAttributeMap(dataList, fieldName);
+            for (List<Map<String, Object>> list : attributeMap.values()) {
                 double p = (double) list.size() / (double) dataList.size();
                 entropy += p * calculateEntropy(list, classValueSet, classAttribute);
             }
@@ -99,9 +99,13 @@ public class IdTreeAnalysis extends BaseAnalysis {
         return gainMap;
     }
 
-    private double calculateEntropy(List<Object> dataList, Set<Object> classValueSet, String classAttribute) {
+    private double calculateEntropy(
+            List<Map<String, Object>> dataList,
+            Set<Object> classValueSet,
+            String classAttribute) {
+
         double entropy = 0d;
-        Map<Object, List<Object>> classValueMap = createAttributeMap(dataList, classAttribute);
+        Map<Object, List<Map<String, Object>>> classValueMap = createAttributeMap(dataList, classAttribute);
 
         for (Object value : classValueSet) {
             if (classValueMap.containsKey(value)) {
@@ -113,10 +117,10 @@ public class IdTreeAnalysis extends BaseAnalysis {
         return entropy;
     }
 
-    private Map<Object, List<Object>> createAttributeMap(List<Object> dataList, String fieldName) {
-        Map<Object, List<Object>> map = new HashMap<>();
-        for (Object data : dataList) {
-            Object attr = ClassOperations.getField(data, fieldName);
+    private Map<Object, List<Map<String, Object>>> createAttributeMap(List<Map<String, Object>> dataList, String fieldName) {
+        Map<Object, List<Map<String, Object>>> map = new HashMap<>();
+        for (Map<String, Object> data : dataList) {
+            Object attr = data.get(fieldName);
             map.computeIfAbsent(attr, o -> new ArrayList<>()).add(data);
         }
 
