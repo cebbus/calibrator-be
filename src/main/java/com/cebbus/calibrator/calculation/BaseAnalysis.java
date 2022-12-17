@@ -3,14 +3,18 @@ package com.cebbus.calibrator.calculation;
 import com.cebbus.calibrator.common.ClassOperations;
 import com.cebbus.calibrator.common.CustomClassOperations;
 import com.cebbus.calibrator.controller.request.DecisionTreeReq;
+import com.cebbus.calibrator.domain.DecisionTree;
 import com.cebbus.calibrator.domain.DecisionTreeItem;
 import com.cebbus.calibrator.domain.Structure;
 import com.cebbus.calibrator.domain.StructureField;
 import com.cebbus.calibrator.repository.StructureRepository;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
+@Slf4j
 public abstract class BaseAnalysis implements Analysis {
 
     final StructureRepository structureRepository;
@@ -39,6 +43,30 @@ public abstract class BaseAnalysis implements Analysis {
         createTree(structure, convertedDataList, root);
 
         return root;
+    }
+
+    @Override
+    public Map<Object, Object> testDecisionTree(DecisionTreeReq request, DecisionTree tree) {
+        Map<Object, Object> classValMap = new HashMap<>();
+
+        long structureId = request.getStructureId().longValue();
+        Structure structure = getStructure(structureId);
+        List<Object> dataList = loadStructureData(structureId);
+        List<Object> testDataList = filterStructureData(structure, dataList, false);
+        List<Map<String, Object>> convertedDataList = convertStructureData(structure, testDataList);
+
+        List<DecisionTreeItem> itemList = tree.getRoot().getChildren();
+
+        for (Map<String, Object> testData : convertedDataList) {
+            AtomicInteger counter = new AtomicInteger();
+
+            Object classValue = findClass(testData, itemList, counter);
+            classValMap.put(testData.get("id"), classValue);
+
+            log.debug("count: " + counter.get() + " - class: " + classValue + " - id: " + testData.get("id"));
+        }
+
+        return classValMap;
     }
 
     Structure getStructure(Long structureId) {
@@ -92,6 +120,8 @@ public abstract class BaseAnalysis implements Analysis {
         Set<StructureField> fields = structure.getFields();
         for (T data : dataList) {
             Map<String, Object> row = new HashMap<>();
+            row.put("id", ClassOperations.getField(data, "id"));
+
             for (StructureField field : fields) {
                 String fieldName = field.getFieldName();
                 row.put(fieldName, ClassOperations.getField(data, fieldName));
@@ -113,5 +143,39 @@ public abstract class BaseAnalysis implements Analysis {
 
     private <T> Class<T> getType(String customClassName) {
         return customClassOperations.resolveCustomClass(customClassName);
+    }
+
+    private String findClass(Map<String, Object> testData, List<DecisionTreeItem> itemList, AtomicInteger counter) {
+        for (DecisionTreeItem item : itemList) {
+            String name = item.getFieldName();
+            String value = item.getFieldValue();
+            String testValue = testData.get(name).toString();
+
+            if (name == null || name.equals(value)) { //field node
+                return findClass(testData, item.getChildren(), counter);
+            } else {
+                counter.incrementAndGet();
+
+                if (isEqualOrContains(value, testValue)) {
+                    if (item.getClassification() != null) {
+                        return item.getClassification();
+                    } else {
+                        return findClass(testData, item.getChildren(), counter);
+                    }
+                }
+            }
+        }
+
+        return null;
+    }
+
+    private boolean isEqualOrContains(String value, String testValue) {
+        if (value.startsWith("[")) {
+            return Arrays.stream(value.replace("[", "").replace("]", "").split(","))
+                    .map(String::trim)
+                    .anyMatch(s -> s.equals(testValue));
+        } else {
+            return value.equals(testValue);
+        }
     }
 }

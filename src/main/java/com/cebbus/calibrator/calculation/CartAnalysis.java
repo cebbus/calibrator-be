@@ -70,14 +70,14 @@ public abstract class CartAnalysis extends BaseAnalysis {
                 calculateGoodness(dataRowList, classValueSet, classAttribute, candidateDivision);
                 double goodness = candidateDivision.getGoodness();
 
-                log.info(fieldName + " - " + candidateDivision.getLeft() + " : " + goodness);
+                log.debug(fieldName + " - " + candidateDivision.getLeft() + " : " + goodness);
                 if (division == null || goodness > division.getGoodness()) {
                     division = candidateDivision;
                 }
             }
         }
 
-        log.info("---------------");
+        log.debug("---------------");
 
         return division;
     }

@@ -1,5 +1,6 @@
 package com.cebbus.calibrator.repository;
 
+import com.cebbus.calibrator.common.ClassOperations;
 import com.cebbus.calibrator.common.CustomClassOperations;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -38,8 +39,10 @@ public class StructureRepositoryImpl implements StructureRepositoryCustom {
 
     @PersistenceContext
     private EntityManager entityManager;
+
     @Autowired
     private CustomClassOperations operations;
+
     @Autowired
     private DataSource dataSource;
 
@@ -132,6 +135,31 @@ public class StructureRepositoryImpl implements StructureRepositoryCustom {
         ) {
             session.beginTransaction();
             session.delete(instance);
+            session.getTransaction().commit();
+        }
+    }
+
+    @Override
+    public <T> void updateClass(Map<Object, Object> valueMap, String classField, Class<T> clazz) {
+        try (
+                SessionFactory sessionFactory = getSessionFactory(clazz);
+                Session session = sessionFactory.getCurrentSession()
+        ) {
+            session.beginTransaction();
+
+            List<T> list = list(clazz);
+            Map<Object, T> dataMap = list.stream().collect(Collectors.toMap(
+                    o -> ClassOperations.getField(o, "id"), o -> o));
+
+            valueMap.forEach((k, v) -> {
+                if (dataMap.containsKey(k)) {
+                    T data = dataMap.get(k);
+                    ClassOperations.setField(data, classField, v);
+
+                    session.update(data);
+                }
+            });
+
             session.getTransaction().commit();
         }
     }

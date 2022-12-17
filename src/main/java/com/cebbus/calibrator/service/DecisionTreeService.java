@@ -8,6 +8,8 @@ import java.util.Optional;
 public interface DecisionTreeService extends Service<DecisionTree> {
     DecisionTree createDecisionTree(DecisionTreeReq request);
 
+    <T> void testDecisionTree(DecisionTreeReq request, DecisionTree tree);
+
     Optional<DecisionTree> loadDecisionTree(DecisionTreeReq request);
 
 }

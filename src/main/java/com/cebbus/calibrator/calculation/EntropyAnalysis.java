@@ -5,9 +5,11 @@ import com.cebbus.calibrator.domain.DecisionTreeItem;
 import com.cebbus.calibrator.domain.Structure;
 import com.cebbus.calibrator.domain.StructureField;
 import com.cebbus.calibrator.repository.StructureRepository;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.*;
 
+@Slf4j
 public abstract class EntropyAnalysis extends BaseAnalysis {
 
     EntropyAnalysis(
@@ -74,7 +76,10 @@ public abstract class EntropyAnalysis extends BaseAnalysis {
             }
 
             gainMap.put(fieldName, classEntropy - entropy);
+            log.debug(fieldName + " : " + gainMap.get(fieldName));
         }
+
+        log.debug("---------------");
 
         return gainMap;
     }

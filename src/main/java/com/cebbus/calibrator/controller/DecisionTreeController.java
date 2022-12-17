@@ -31,4 +31,15 @@ public class DecisionTreeController {
         return service.createDecisionTree(request).getRoot();
     }
 
+    @PostMapping("/test")
+    public ResponseEntity<Object> testDecisionTree(@RequestBody DecisionTreeReq request) {
+        Optional<DecisionTree> decisionTree = service.loadDecisionTree(request);
+        if (decisionTree.isEmpty()) {
+            return ResponseEntity.internalServerError().build();
+        } else {
+            service.testDecisionTree(request, decisionTree.get());
+            return ResponseEntity.ok(null);
+        }
+    }
+
 }

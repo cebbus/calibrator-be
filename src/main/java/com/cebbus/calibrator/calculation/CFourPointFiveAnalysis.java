@@ -37,6 +37,8 @@ public class CFourPointFiveAnalysis extends EntropyAnalysis {
 
             for (T data : dataList) {
                 Map<String, Object> row = new HashMap<>();
+                row.put("id", ClassOperations.getField(data, "id"));
+
                 for (StructureField field : fields) {
                     String fieldName = field.getFieldName();
                     Object fieldValue = ClassOperations.getField(data, fieldName);
