@@ -2,6 +2,8 @@ package com.cebbus.calibrator.calculation;
 
 import com.cebbus.calibrator.common.ClassOperations;
 import com.cebbus.calibrator.common.CustomClassOperations;
+import com.cebbus.calibrator.controller.request.DecisionTreeReq;
+import com.cebbus.calibrator.domain.DecisionTreeItem;
 import com.cebbus.calibrator.domain.Structure;
 import com.cebbus.calibrator.domain.StructureField;
 import com.cebbus.calibrator.repository.StructureRepository;
@@ -19,6 +21,24 @@ public abstract class BaseAnalysis implements Analysis {
             CustomClassOperations customClassOperations) {
         this.structureRepository = structureRepository;
         this.customClassOperations = customClassOperations;
+    }
+
+    abstract void createTree(Structure structure, List<Map<String, Object>> dataRowList, DecisionTreeItem root);
+
+    @Override
+    public DecisionTreeItem createDecisionTree(DecisionTreeReq request) {
+        long structureId = request.getStructureId().longValue();
+        Structure structure = getStructure(structureId);
+        List<Object> dataList = loadStructureData(structureId);
+        List<Object> trainingDataList = filterStructureData(structure, dataList, true);
+        List<Map<String, Object>> convertedDataList = convertStructureData(structure, trainingDataList);
+
+        DecisionTreeItem root = new DecisionTreeItem();
+        root.setChildren(new ArrayList<>());
+
+        createTree(structure, convertedDataList, root);
+
+        return root;
     }
 
     Structure getStructure(Long structureId) {
@@ -81,6 +101,10 @@ public abstract class BaseAnalysis implements Analysis {
         }
 
         return rowList;
+    }
+
+    boolean isExcluded(StructureField field) {
+        return field.isDifferentiator() || field.isClassifier() || field.isExcluded();
     }
 
     double logBase2(double t) {
