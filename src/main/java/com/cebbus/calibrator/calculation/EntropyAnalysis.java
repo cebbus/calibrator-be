@@ -1,22 +1,14 @@
 package com.cebbus.calibrator.calculation;
 
-import com.cebbus.calibrator.common.CustomClassOperations;
 import com.cebbus.calibrator.domain.DecisionTreeItem;
 import com.cebbus.calibrator.domain.Structure;
 import com.cebbus.calibrator.domain.StructureField;
-import com.cebbus.calibrator.repository.StructureRepository;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.*;
 
 @Slf4j
 public abstract class EntropyAnalysis extends BaseAnalysis {
-
-    EntropyAnalysis(
-            StructureRepository structureRepository,
-            CustomClassOperations customClassOperations) {
-        super(structureRepository, customClassOperations);
-    }
 
     @Override
     void createTree(Structure structure, List<Map<String, Object>> dataList, DecisionTreeItem parent) {

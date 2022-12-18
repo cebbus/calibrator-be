@@ -1,10 +1,8 @@
 package com.cebbus.calibrator.calculation;
 
-import com.cebbus.calibrator.common.CustomClassOperations;
 import com.cebbus.calibrator.domain.DecisionTreeItem;
 import com.cebbus.calibrator.domain.Structure;
 import com.cebbus.calibrator.domain.StructureField;
-import com.cebbus.calibrator.repository.StructureRepository;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -13,12 +11,6 @@ import java.util.*;
 
 @Slf4j
 public abstract class CartAnalysis extends BaseAnalysis {
-
-    CartAnalysis(
-            StructureRepository structureRepository,
-            CustomClassOperations customClassOperations) {
-        super(structureRepository, customClassOperations);
-    }
 
     abstract void calculateGoodness(
             List<Map<String, Object>> dataRowList,

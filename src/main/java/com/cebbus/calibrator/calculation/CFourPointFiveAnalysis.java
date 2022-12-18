@@ -1,11 +1,9 @@
 package com.cebbus.calibrator.calculation;
 
 import com.cebbus.calibrator.common.ClassOperations;
-import com.cebbus.calibrator.common.CustomClassOperations;
 import com.cebbus.calibrator.domain.Structure;
 import com.cebbus.calibrator.domain.StructureField;
 import com.cebbus.calibrator.domain.enums.DataType;
-import com.cebbus.calibrator.repository.StructureRepository;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
@@ -13,12 +11,6 @@ import java.util.stream.Collectors;
 
 @Component
 public class CFourPointFiveAnalysis extends EntropyAnalysis {
-
-    public CFourPointFiveAnalysis(
-            StructureRepository structureRepository,
-            CustomClassOperations customClassOperations) {
-        super(structureRepository, customClassOperations);
-    }
 
     @Override
     <T> List<Map<String, Object>> convertStructureData(Structure structure, List<T> dataList) {

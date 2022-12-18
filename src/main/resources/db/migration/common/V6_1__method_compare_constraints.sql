@@ -1,0 +1,1 @@
+alter table method_compare add constraint FKk3mytqhoisx6k42luyeyom71v foreign key (structure_id) references structure;

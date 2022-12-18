@@ -1,7 +1,9 @@
 package com.cebbus.calibrator.service;
 
+import com.cebbus.calibrator.common.ClassOperations;
 import com.cebbus.calibrator.common.CustomClassOperations;
 import com.cebbus.calibrator.domain.Structure;
+import com.cebbus.calibrator.domain.StructureField;
 import com.cebbus.calibrator.repository.DecisionTreeRepository;
 import com.cebbus.calibrator.repository.StructureRepository;
 import lombok.RequiredArgsConstructor;
@@ -9,6 +11,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -73,6 +80,19 @@ public class StructureServiceImpl implements StructureService {
         return repository.findAll(specification, pageRequest);
     }
 
+    @Override
+    public <T> List<T> loadData(Structure structure, boolean training) {
+        Class<T> type = customClassOperations.resolveCustomClass(structure.getClassName());
+        List<T> dataList = repository.list(type);
+
+        return filterStructureData(structure, dataList, training);
+    }
+
+    @Override
+    public <T> void assignClass(Map<Object, Object> valueMap, String classField, Class<T> clazz) {
+        repository.updateClass(valueMap, classField, clazz);
+    }
+
     private void createClassAndTable(Structure structure) {
         Class<?> clazz = customClassOperations.createCustomClass(structure);
         repository.createCustomTable(clazz);
@@ -83,5 +103,25 @@ public class StructureServiceImpl implements StructureService {
 
         customClassOperations.dropCustomClass(clazz);
         repository.dropCustomTable(clazz);
+    }
+
+    private <T> List<T> filterStructureData(Structure structure, List<T> dataList, boolean training) {
+        Optional<StructureField> differentiator = structure.getFields().stream()
+                .filter(StructureField::isDifferentiator)
+                .findFirst();
+
+        if (differentiator.isEmpty()) {
+            return dataList;
+        } else {
+            String fieldName = differentiator.get().getFieldName();
+            return dataList.stream().filter(d -> {
+                Object value = ClassOperations.getField(d, fieldName);
+                if (training) {
+                    return Boolean.TRUE.equals(value);
+                } else {
+                    return !Boolean.TRUE.equals(value);
+                }
+            }).collect(Collectors.toList());
+        }
     }
 }

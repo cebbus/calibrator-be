@@ -9,12 +9,12 @@ import com.cebbus.calibrator.domain.Structure;
 import com.cebbus.calibrator.domain.StructureField;
 import com.cebbus.calibrator.filter.SpecificationBuilder;
 import com.cebbus.calibrator.repository.DecisionTreeRepository;
-import com.cebbus.calibrator.repository.StructureRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationContext;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -23,15 +23,18 @@ import java.util.Optional;
 public class DecisionTreeServiceImpl implements DecisionTreeService {
 
     private final ApplicationContext context;
-    private final DecisionTreeRepository repository;
-    private final StructureRepository structureRepository;
     private final CustomClassOperations operations;
+    private final DecisionTreeRepository repository;
+
+    private final StructureService structureService;
 
     @Override
     public DecisionTree createDecisionTree(DecisionTreeReq request) {
-        Class<? extends Analysis> analysisClass = request.getMethodType().getAnalysisClass();
-        Analysis analysis = context.getBean(analysisClass);
-        DecisionTreeItem root = analysis.createDecisionTree(request);
+        Structure structure = structureService.get(request.getStructureId().longValue());
+        List<Object> trainingDataList = structureService.loadData(structure, true);
+
+        Analysis analysis = getAnalysisBean(request);
+        DecisionTreeItem root = analysis.createDecisionTree(structure, trainingDataList);
 
         loadDecisionTree(request).ifPresent(tree -> delete(tree.getId()));
         return create(request, root);
@@ -39,14 +42,15 @@ public class DecisionTreeServiceImpl implements DecisionTreeService {
 
     @Override
     public <T> void testDecisionTree(DecisionTreeReq request, DecisionTree tree) {
-        Class<? extends Analysis> analysisClass = request.getMethodType().getAnalysisClass();
-        Analysis analysis = context.getBean(analysisClass);
+        Structure structure = structureService.get(request.getStructureId().longValue());
+        List<Object> testDataList = structureService.loadData(structure, false);
 
-        String classField = getField(request);
-        Class<T> customClass = getType(request);
+        Analysis analysis = getAnalysisBean(request);
+        Map<Object, Object> classValMap = analysis.testDecisionTree(structure, testDataList, tree);
 
-        Map<Object, Object> classValMap = analysis.testDecisionTree(request, tree);
-        structureRepository.updateClass(classValMap, classField, customClass);
+        String classField = getField(structure);
+        Class<T> customClass = operations.resolveCustomClass(structure.getClassName());
+        structureService.assignClass(classValMap, classField, customClass);
     }
 
     @Override
@@ -103,19 +107,15 @@ public class DecisionTreeServiceImpl implements DecisionTreeService {
         }
     }
 
-    private String getField(DecisionTreeReq request) {
-        long id = request.getStructureId().longValue();
-        Structure structure = structureRepository.findById(id).orElseThrow();
-
+    private String getField(Structure structure) {
         return structure.getFields().stream()
                 .filter(StructureField::isClassifier)
                 .findFirst().orElseThrow()
                 .getFieldName();
     }
 
-    private <T> Class<T> getType(DecisionTreeReq request) {
-        long id = request.getStructureId().longValue();
-        Structure structure = structureRepository.findById(id).orElseThrow();
-        return operations.resolveCustomClass(structure.getClassName());
+    private Analysis getAnalysisBean(DecisionTreeReq request) {
+        Class<? extends Analysis> analysisClass = request.getMethodType().getAnalysisClass();
+        return context.getBean(analysisClass);
     }
 }

@@ -1,13 +1,14 @@
 package com.cebbus.calibrator.calculation;
 
-import com.cebbus.calibrator.controller.request.DecisionTreeReq;
 import com.cebbus.calibrator.domain.DecisionTree;
 import com.cebbus.calibrator.domain.DecisionTreeItem;
+import com.cebbus.calibrator.domain.Structure;
 
+import java.util.List;
 import java.util.Map;
 
 public interface Analysis {
-    DecisionTreeItem createDecisionTree(DecisionTreeReq request);
+    <T> DecisionTreeItem createDecisionTree(Structure structure, List<T> dataList);
 
-    Map<Object, Object> testDecisionTree(DecisionTreeReq request, DecisionTree tree);
+    <T> Map<Object, Object> testDecisionTree(Structure structure, List<T> dataList, DecisionTree tree);
 }

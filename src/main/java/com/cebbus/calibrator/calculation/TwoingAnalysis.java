@@ -1,7 +1,5 @@
 package com.cebbus.calibrator.calculation;
 
-import com.cebbus.calibrator.common.CustomClassOperations;
-import com.cebbus.calibrator.repository.StructureRepository;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -11,12 +9,6 @@ import java.util.stream.Collectors;
 
 @Component
 public class TwoingAnalysis extends CartAnalysis {
-
-    TwoingAnalysis(
-            StructureRepository structureRepository,
-            CustomClassOperations customClassOperations) {
-        super(structureRepository, customClassOperations);
-    }
 
     @Override
     void calculateGoodness(
