@@ -3,61 +3,16 @@ package com.cebbus.calibrator.calculation;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 @Component
 public class GiniAnalysis extends CartAnalysis {
 
     @Override
-    void calculateGoodness(
-            List<Map<String, Object>> dataRowList,
-            Set<Object> classValueSet,
-            String classAttribute,
-            CandidateDivision division) {
+    double calculateGoodness(double[] pArr, List<double[]> pArrList) {
+        double giniLeft = 1 - pArrList.stream().mapToDouble(p -> Math.pow(p[0], 2)).sum();
+        double giniRight = 1 - pArrList.stream().mapToDouble(p -> Math.pow(p[1], 2)).sum();
+        double goodness = 1 - ((pArr[0] * giniLeft) + (pArr[1] * giniRight));
 
-        Object left = division.getLeft();
-        Set<Object> right = division.getRight();
-        String fieldName = division.getFieldName();
-
-        List<Map<String, Object>> leftDataList = dataRowList.stream()
-                .filter(r -> left.equals(r.get(fieldName)))
-                .collect(Collectors.toList());
-
-        List<Map<String, Object>> rightDataList = dataRowList.stream()
-                .filter(r -> right.contains(r.get(fieldName)))
-                .collect(Collectors.toList());
-
-        double giniLeft = 0d;
-        double giniRight = 0d;
-
-        for (Object classValue : classValueSet) {
-            double tcLeft = leftDataList.stream()
-                    .filter(r -> classValue.equals(r.get(classAttribute)))
-                    .count();
-
-            double tcRight = rightDataList.stream()
-                    .filter(r -> classValue.equals(r.get(classAttribute)))
-                    .count();
-
-            giniLeft += Math.pow(tcLeft / leftDataList.size(), 2);
-            giniRight += Math.pow(tcRight / rightDataList.size(), 2);
-        }
-
-        giniLeft = 1 - giniLeft;
-        giniRight = 1 - giniRight;
-        double pLeft = (double) leftDataList.size() / (double) dataRowList.size();
-        double pRight = (double) rightDataList.size() / (double) dataRowList.size();
-
-        double goodness = 1 - ((pLeft * giniLeft) + (pRight * giniRight));
-        if (Double.isNaN(goodness) || Double.isInfinite(goodness)) {
-            division.setGoodness(0d);
-        } else {
-            division.setGoodness(goodness);
-        }
-
-        division.setLeftDataList(leftDataList);
-        division.setRightDataList(rightDataList);
+        return Double.isNaN(goodness) || Double.isInfinite(goodness) ? 0d : goodness;
     }
 }

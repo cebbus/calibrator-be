@@ -8,19 +8,16 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 public abstract class CartAnalysis extends BaseAnalysis {
 
-    abstract void calculateGoodness(
-            List<Map<String, Object>> dataRowList,
-            Set<Object> classValueSet,
-            String classAttribute,
-            CandidateDivision division);
+    abstract double calculateGoodness(double[] pArr, List<double[]> pArrList);
 
     @Override
     void createTree(Structure structure, List<Map<String, Object>> dataRowList, DecisionTreeItem parent) {
-        CandidateDivision division = candidateDivision(structure, dataRowList);
+        CandidateDivision division = candidateDivision(structure, dataRowList, parent);
         if (division == null) {
             return;
         }
@@ -40,7 +37,8 @@ public abstract class CartAnalysis extends BaseAnalysis {
 
     CandidateDivision candidateDivision(
             Structure structure,
-            List<Map<String, Object>> dataRowList) {
+            List<Map<String, Object>> dataRowList,
+            DecisionTreeItem parent) {
 
         String classAttribute = findClassAttribute(structure);
         Set<Object> classValueSet = createValueSet(dataRowList, classAttribute);
@@ -49,18 +47,38 @@ public abstract class CartAnalysis extends BaseAnalysis {
 
         for (StructureField field : structure.getFields()) {
             String fieldName = field.getFieldName();
-            if (isExcluded(field) || dataRowList.isEmpty() || !dataRowList.get(0).containsKey(fieldName)) {
+            if (isExcluded(field) || dataRowList.isEmpty() || fieldName.equals(parent.getFieldName())) {
                 continue;
             }
 
+            double dataSize = dataRowList.size();
             Set<Object> valueSet = createValueSet(dataRowList, fieldName);
             for (Object value : valueSet) {
                 Set<Object> right = new HashSet<>(valueSet);
                 right.remove(value);
 
                 CandidateDivision candidateDivision = new CandidateDivision(fieldName, value, right);
-                calculateGoodness(dataRowList, classValueSet, classAttribute, candidateDivision);
-                double goodness = candidateDivision.getGoodness();
+                candidateDivision.setLeftDataList(filterDataList(dataRowList, candidateDivision, true));
+                candidateDivision.setRightDataList(filterDataList(dataRowList, candidateDivision, false));
+
+                List<Map<String, Object>> leftDataList = candidateDivision.getLeftDataList();
+                double leftDataSize = leftDataList.size();
+
+                List<Map<String, Object>> rightDataList = candidateDivision.getRightDataList();
+                double rightDataSize = rightDataList.size();
+
+                double[] pArr = {leftDataSize / dataSize, rightDataSize / dataSize};
+
+                List<double[]> pArrList = new ArrayList<>();
+                for (Object classValue : classValueSet) {
+                    double tcLeft = countAttributeValue(leftDataList, classValue, classAttribute);
+                    double tcRight = countAttributeValue(rightDataList, classValue, classAttribute);
+
+                    pArrList.add(new double[]{tcLeft / leftDataSize, tcRight / rightDataSize});
+                }
+
+                double goodness = calculateGoodness(pArr, pArrList);
+                candidateDivision.setGoodness(goodness);
 
                 log.debug(fieldName + " - " + candidateDivision.getLeft() + " : " + goodness);
                 if (division == null || goodness > division.getGoodness()) {
@@ -99,12 +117,33 @@ public abstract class CartAnalysis extends BaseAnalysis {
         if (classSet.size() == 1) {
             item.setClassification(classSet.iterator().next().toString());
         } else {
-            if (left || fieldValue.split(",").length == 1) {
-                dataList.forEach(r -> r.remove(fieldName));
-            }
-
             createTree(structure, dataList, item);
         }
+    }
+
+    private List<Map<String, Object>> filterDataList(
+            List<Map<String, Object>> dataRowList,
+            CandidateDivision division,
+            boolean left) {
+
+        String fieldName = division.getFieldName();
+
+        if (left) {
+            Object leftValue = division.getLeft();
+
+            return dataRowList.stream()
+                    .filter(r -> leftValue.equals(r.get(fieldName)))
+                    .collect(Collectors.toList());
+        } else {
+            Set<Object> rightValue = division.getRight();
+            return dataRowList.stream()
+                    .filter(r -> rightValue.contains(r.get(fieldName)))
+                    .collect(Collectors.toList());
+        }
+    }
+
+    private double countAttributeValue(List<Map<String, Object>> dataList, Object value, String attribute) {
+        return dataList.stream().filter(r -> value.equals(r.get(attribute))).count();
     }
 
     @Data
