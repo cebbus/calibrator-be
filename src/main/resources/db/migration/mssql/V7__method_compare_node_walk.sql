@@ -1,0 +1,1 @@
+alter table method_compare add node_walk double precision null;

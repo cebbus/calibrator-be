@@ -1,5 +1,6 @@
 package com.cebbus.calibrator.calculation;
 
+import com.cebbus.calibrator.calculation.result.TestResult;
 import com.cebbus.calibrator.common.ClassOperations;
 import com.cebbus.calibrator.domain.DecisionTree;
 import com.cebbus.calibrator.domain.DecisionTreeItem;
@@ -29,7 +30,8 @@ public abstract class BaseAnalysis implements Analysis {
     }
 
     @Override
-    public <T> Map<Object, Object> testDecisionTree(Structure structure, List<T> dataList, DecisionTree tree) {
+    public <T> TestResult testDecisionTree(Structure structure, List<T> dataList, DecisionTree tree) {
+        double nodeWalk = 0;
         Map<Object, Object> classValMap = new HashMap<>();
         List<Map<String, Object>> convertedDataList = convertStructureData(structure, dataList);
 
@@ -41,10 +43,13 @@ public abstract class BaseAnalysis implements Analysis {
             Object classValue = findClass(testData, itemList, counter);
             classValMap.put(testData.get("id"), classValue);
 
+            nodeWalk += counter.doubleValue();
             log.debug("count: " + counter.get() + " - class: " + classValue + " - id: " + testData.get("id"));
         }
 
-        return classValMap;
+        nodeWalk /= dataList.isEmpty() ? 1 : dataList.size();
+
+        return new TestResult(nodeWalk, classValMap);
     }
 
     String findClassAttribute(Structure structure) {

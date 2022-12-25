@@ -1,6 +1,7 @@
 package com.cebbus.calibrator.service;
 
 import com.cebbus.calibrator.calculation.Analysis;
+import com.cebbus.calibrator.calculation.result.TestResult;
 import com.cebbus.calibrator.controller.request.DecisionTreeReq;
 import com.cebbus.calibrator.domain.DecisionTree;
 import com.cebbus.calibrator.domain.DecisionTreeItem;
@@ -18,7 +19,6 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -82,10 +82,11 @@ public class MethodCompareServiceImpl implements MethodCompareService {
             compare.setTrainingEnd(LocalDateTime.now());
 
             compare.setTestStart(LocalDateTime.now());
-            Map<Object, Object> classValMap = analysisBean.testDecisionTree(structure, testDataList, tree);
+            TestResult result = analysisBean.testDecisionTree(structure, testDataList, tree);
             compare.setTestEnd(LocalDateTime.now());
 
-            compare.setUnclassifiedDataSize(classValMap.entrySet().stream()
+            compare.setNodeWalk(result.getAvgNodeWalk());
+            compare.setUnclassifiedDataSize(result.getClassValMap().entrySet().stream()
                     .filter(e -> e.getValue() == null)
                     .count());
 

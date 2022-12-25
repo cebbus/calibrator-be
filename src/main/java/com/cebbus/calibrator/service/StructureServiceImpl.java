@@ -1,5 +1,6 @@
 package com.cebbus.calibrator.service;
 
+import com.cebbus.calibrator.calculation.result.TestResult;
 import com.cebbus.calibrator.common.ClassOperations;
 import com.cebbus.calibrator.common.CustomClassOperations;
 import com.cebbus.calibrator.domain.Structure;
@@ -13,7 +14,6 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -89,8 +89,8 @@ public class StructureServiceImpl implements StructureService {
     }
 
     @Override
-    public <T> void assignClass(Map<Object, Object> valueMap, String classField, Class<T> clazz) {
-        repository.updateClass(valueMap, classField, clazz);
+    public <T> void assignClass(TestResult testResult, String classField, Class<T> clazz) {
+        repository.updateClass(testResult.getClassValMap(), classField, clazz);
     }
 
     private void createClassAndTable(Structure structure) {

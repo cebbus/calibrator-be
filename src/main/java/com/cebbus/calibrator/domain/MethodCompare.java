@@ -39,6 +39,9 @@ public class MethodCompare extends Base {
     @Enumerated(EnumType.STRING)
     private MethodType method;
 
+    @Column
+    private Double nodeWalk;
+
     @ManyToOne
     @JoinColumn(name = "structureId")
     private Structure structure;

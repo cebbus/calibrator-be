@@ -1,6 +1,7 @@
 package com.cebbus.calibrator.service;
 
 import com.cebbus.calibrator.calculation.Analysis;
+import com.cebbus.calibrator.calculation.result.TestResult;
 import com.cebbus.calibrator.common.CustomClassOperations;
 import com.cebbus.calibrator.controller.request.DecisionTreeReq;
 import com.cebbus.calibrator.domain.DecisionTree;
@@ -15,7 +16,6 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -46,11 +46,11 @@ public class DecisionTreeServiceImpl implements DecisionTreeService {
         List<Object> testDataList = structureService.loadData(structure, false);
 
         Analysis analysis = getAnalysisBean(request);
-        Map<Object, Object> classValMap = analysis.testDecisionTree(structure, testDataList, tree);
+        TestResult testResult = analysis.testDecisionTree(structure, testDataList, tree);
 
         String classField = getField(structure);
         Class<T> customClass = operations.resolveCustomClass(structure.getClassName());
-        structureService.assignClass(classValMap, classField, customClass);
+        structureService.assignClass(testResult, classField, customClass);
     }
 
     @Override
