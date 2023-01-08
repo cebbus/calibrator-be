@@ -33,7 +33,10 @@ public class MethodCompare extends Base {
     private Integer testSize;
 
     @Column
-    private Long unclassifiedDataSize;
+    private Integer unclassifiedDataSize;
+
+    @Column
+    private Integer wrongClassifiedDataSize;
 
     @Column
     @Enumerated(EnumType.STRING)

@@ -101,9 +101,9 @@ public abstract class BaseAnalysis implements Analysis {
             if (name == null || name.equals(value)) { //field node
                 return findClass(testData, item.getChildren(), counter);
             } else {
-                counter.incrementAndGet();
-
                 if (isEqualOrContains(value, testValue)) {
+                    counter.incrementAndGet();
+
                     if (item.getClassification() != null) {
                         return item.getClassification();
                     } else {

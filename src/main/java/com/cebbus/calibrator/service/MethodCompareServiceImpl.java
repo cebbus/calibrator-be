@@ -2,11 +2,9 @@ package com.cebbus.calibrator.service;
 
 import com.cebbus.calibrator.calculation.Analysis;
 import com.cebbus.calibrator.calculation.result.TestResult;
+import com.cebbus.calibrator.common.ClassOperations;
 import com.cebbus.calibrator.controller.request.DecisionTreeReq;
-import com.cebbus.calibrator.domain.DecisionTree;
-import com.cebbus.calibrator.domain.DecisionTreeItem;
-import com.cebbus.calibrator.domain.MethodCompare;
-import com.cebbus.calibrator.domain.Structure;
+import com.cebbus.calibrator.domain.*;
 import com.cebbus.calibrator.domain.enums.MethodType;
 import com.cebbus.calibrator.repository.MethodCompareRepository;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +17,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -86,9 +85,8 @@ public class MethodCompareServiceImpl implements MethodCompareService {
             compare.setTestEnd(LocalDateTime.now());
 
             compare.setNodeWalk(result.getAvgNodeWalk());
-            compare.setUnclassifiedDataSize(result.getClassValMap().entrySet().stream()
-                    .filter(e -> e.getValue() == null)
-                    .count());
+            compare.setUnclassifiedDataSize(calculateUnclassifiedData(result));
+            compare.setWrongClassifiedDataSize(calculateWrongClassifiedData(structure, result, testDataList));
 
             compareList.add(compare);
         }
@@ -104,5 +102,34 @@ public class MethodCompareServiceImpl implements MethodCompareService {
     private Analysis getAnalysisBean(MethodType method) {
         Class<? extends Analysis> analysisClass = method.getAnalysisClass();
         return context.getBean(analysisClass);
+    }
+
+    private int calculateUnclassifiedData(TestResult result) {
+        return (int) result.getClassValMap().entrySet().stream()
+                .filter(e -> e.getValue() == null)
+                .count();
+    }
+
+    private <T> int calculateWrongClassifiedData(Structure structure, TestResult result, List<T> testDataList) {
+        Map<Object, Object> classValMap = result.getClassValMap();
+
+        String classifier = structure.getFields().stream()
+                .filter(StructureField::isClassifier)
+                .findFirst()
+                .orElseThrow()
+                .getFieldName();
+
+        int falseRes = 0;
+        for (T testData : testDataList) {
+            Object id = ClassOperations.getField(testData, "id");
+            Object expectedVal = ClassOperations.getField(testData, classifier);
+            Object actualVal = classValMap.get(id);
+
+            if (actualVal != null && !actualVal.equals(expectedVal)) {
+                falseRes++;
+            }
+        }
+
+        return falseRes;
     }
 }
